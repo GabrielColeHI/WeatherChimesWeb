@@ -1035,6 +1035,7 @@ function getGlobalTicks(globalMin, globalMax, xData) {
   if (visibleData.length === 1) {
     let d = new Date(visibleData[0]);
     let label = d.toLocaleString('en-US', {
+      year: '2-digit', 
       month: '2-digit', 
       day: '2-digit', 
       hour: '2-digit', 
@@ -1072,6 +1073,7 @@ function getGlobalTicks(globalMin, globalMax, xData) {
   baseTickVals.forEach((val) => {
     let d = new Date(val);
     let currentLabel = d.toLocaleString('en-US', {
+      year: '2-digit', 
       month: '2-digit', 
       day: '2-digit', 
       hour: '2-digit', 
@@ -1094,7 +1096,12 @@ function getGlobalTicks(globalMin, globalMax, xData) {
   // the only data point)
   if (finalTickText.length > 0 && finalTickText.every(t => t === "")) {
       finalTickText[0] = new Date(finalTickVals[0]).toLocaleString('en-US', {
-          month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+        year: '2-digit', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit'
       });
   }
 
