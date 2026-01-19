@@ -185,20 +185,46 @@ function attachReadingListener(soundModule) {
   });
 }
 
+// Left menu collapse (accordion) logic
 function attachCollapseListener(soundModule) {
   const collapseBtn = soundModule.querySelector('.collapse-btn');
-  collapseBtn.addEventListener('click', () => {
-    const options = soundModule.querySelector('.moduleBottomOptions');
-    const isVisible = options.style.display === 'block';
-    options.style.display = isVisible ? 'none' : 'block';
-    collapseBtn.textContent = isVisible ? '▼' : '▲';
+  const options = soundModule.querySelector('.moduleBottomOptions');
+  const plotDiv = soundModule.querySelector('.plot');
 
-    setTimeout(() => {
-      const plotDiv = soundModule.querySelector('.plot');
-      if (plotDiv && plotDiv.data) {
-        Plotly.Plots.resize(plotDiv);
-      }
-    }, 0);
+  // 1. Setup an Observer to watch for height changes in this specific module
+  const resizeObserver = new ResizeObserver(() => {
+    if (plotDiv && (plotDiv.data || plotDiv.layout)) {
+      Plotly.Plots.resize(plotDiv);
+    }
+  });
+  
+  // Start observing the module
+  resizeObserver.observe(soundModule);
+
+  collapseBtn.addEventListener('click', () => {
+    const isExpanding = options.style.display === 'none' || options.style.display === '';
+
+    if (isExpanding) {
+      // Close all other open modules
+      document.querySelectorAll('.soundModule').forEach(module => {
+        const otherOptions = module.querySelector('.moduleBottomOptions');
+        const otherBtn = module.querySelector('.collapse-btn');
+        if (otherOptions && otherOptions !== options) {
+          otherOptions.style.display = 'none';
+          if (otherBtn) {
+            otherBtn.innerHTML = ' More Options <span class="arrow-icon">▼</span>';
+          }
+        }
+      });
+
+      options.style.display = 'block';
+      collapseBtn.innerHTML = ' Hide Options <span class="arrow-icon">▲</span>';
+    } else {
+      options.style.display = 'none';
+      collapseBtn.innerHTML = ' More Options <span class="arrow-icon">▼</span>';
+    }
+    
+    // NO setTimeout needed! The Observer handles it instantly.
   });
 }
 
