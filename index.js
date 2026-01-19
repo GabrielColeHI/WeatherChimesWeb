@@ -188,13 +188,24 @@ function attachReadingListener(soundModule) {
 // Left menu collapse (accordion) logic
 function attachCollapseListener(soundModule) {
   const collapseBtn = soundModule.querySelector('.collapse-btn');
+  const options = soundModule.querySelector('.moduleBottomOptions');
+  const plotDiv = soundModule.querySelector('.plot');
+
+  // 1. Setup an Observer to watch for height changes in this specific module
+  const resizeObserver = new ResizeObserver(() => {
+    if (plotDiv && (plotDiv.data || plotDiv.layout)) {
+      Plotly.Plots.resize(plotDiv);
+    }
+  });
   
+  // Start observing the module
+  resizeObserver.observe(soundModule);
+
   collapseBtn.addEventListener('click', () => {
-    const options = soundModule.querySelector('.moduleBottomOptions');
     const isExpanding = options.style.display === 'none' || options.style.display === '';
 
     if (isExpanding) {
-      // Close others
+      // Close all other open modules
       document.querySelectorAll('.soundModule').forEach(module => {
         const otherOptions = module.querySelector('.moduleBottomOptions');
         const otherBtn = module.querySelector('.collapse-btn');
@@ -206,22 +217,14 @@ function attachCollapseListener(soundModule) {
         }
       });
 
-      // Expand this one
       options.style.display = 'block';
       collapseBtn.innerHTML = ' Hide Options <span class="arrow-icon">▲</span>';
     } else {
-      // Collapse this one
       options.style.display = 'none';
       collapseBtn.innerHTML = ' More Options <span class="arrow-icon">▼</span>';
     }
-
-    // Resize Plotly
-    setTimeout(() => {
-      const plotDiv = soundModule.querySelector('.plot');
-      if (plotDiv && plotDiv.data) {
-        Plotly.Plots.resize(plotDiv);
-      }
-    }, 50);
+    
+    // NO setTimeout needed! The Observer handles it instantly.
   });
 }
 
