@@ -2,6 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <title>Ear2Earth</title>
+
     <link href="style.css" rel="stylesheet" />
 
     <!-- Google Fonts -->
@@ -25,14 +27,11 @@
       charset="utf-8"
     ></script>
 
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/addons/p5.sound.min.js"></script>-->
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.45/Tone.js"></script>
   </head>
+
   <body>
     <header>
-      <title id="title">Ear2Earth</title>
       <h2>Ear2Earth, Environmental Sensor Data Sonification Platform</h2>
     </header>
 
@@ -44,24 +43,22 @@
           <div class="row">
             <!-- Preset -->
             <div class="group">
-              <label class="u-sr-only" for="retrieveByNameDropdown"
-                >Preset</label
-              >
+              <label class="u-sr-only" for="retrieveByNameDropdown">Preset</label>
               <select id="retrieveByNameDropdown">
-                <option value="default" id="default_preset">
-                  Select a Preset
-                </option>
+                <option value="default" id="default_preset">Select a Preset</option>
               </select>
             </div>
 
-            <!-- Collapsible Database/Device (kept for index.js; starts hidden) -->
+            <!-- Collapsible Database/Device (index.js uses these IDs) -->
             <button
               class="icon-btn collapse-btn"
               id="toggleDataSource"
               title="Show databases & devices"
+              type="button"
             >
               ▼
             </button>
+
             <div id="dataSource" style="display: none">
               <div id="databaseElements">
                 <label for="databases">Database:</label>
@@ -69,6 +66,7 @@
                   <option value="default">Select a database</option>
                 </select>
               </div>
+
               <div id="deviceElements">
                 <label for="devices">Device:</label>
                 <select id="devices">
@@ -77,7 +75,7 @@
               </div>
             </div>
 
-            <!-- Packet option radios (required by index.js, so kept for now as well) -->
+            <!-- Packet option radios -->
             <div class="group" id="dataOptions">
               <label>
                 <input
@@ -89,6 +87,7 @@
                 />
                 Last X Packets
               </label>
+
               <label>
                 <input
                   type="radio"
@@ -99,8 +98,6 @@
                 Time Range
               </label>
             </div>
-
-            <!--Test-->
 
             <!-- # Packets -->
             <div class="group" id="numpacketsInput">
@@ -115,7 +112,7 @@
               <span class="muted">packets</span>
             </div>
 
-            <!-- Time range (kept with exact ID for index.js; calendar picker) -->
+            <!-- Time range -->
             <div class="group time" id="timeInputs" style="display: none">
               <span class="muted">Time Range</span>
               <input type="datetime-local" id="startTime" />
@@ -124,12 +121,14 @@
             </div>
 
             <!-- Retrieve -->
-            <button id="retrieve" class="primary-btn">Retrieve Data</button>
+            <button id="retrieve" class="primary-btn" type="button">
+              Retrieve Data
+            </button>
 
             <!-- Info / Metadata -->
             <div class="group">
-              <button id="infoButton" class="icon-btn" title="Help"></button>
-              <button id="metadataButton" class="pill-btn">
+              <button id="infoButton" class="icon-btn" title="Help" type="button"></button>
+              <button id="metadataButton" class="pill-btn" type="button">
                 View Metadata
               </button>
             </div>
@@ -140,8 +139,8 @@
         <section class="toolbar toolbar-transport" aria-label="Playback">
           <div class="row">
             <div class="transport-group">
-              <button id="play" class="square-btn" title="Play"></button>
-              <button id="stop" class="square-btn" title="Stop"></button>
+              <button id="play" class="square-btn" title="Play" type="button"></button>
+              <button id="stop" class="square-btn" title="Stop" type="button"></button>
             </div>
 
             <div id="bpmContainer" class="transport-group">
@@ -152,20 +151,25 @@
               <!-- Speed options (IDs required by index.js) -->
               <div id="speedOptions" class="speed">
                 <label for="speed1x">1x</label>
-                <input
-                  type="radio"
-                  id="speed1x"
-                  name="speed"
-                  value="1"
-                  checked
-                />
+                <input type="radio" id="speed1x" name="speed" value="1" checked />
+
                 <label for="speed2x">2x</label>
                 <input type="radio" id="speed2x" name="speed" value="2" />
+
                 <label for="speed4x">4x</label>
                 <input type="radio" id="speed4x" name="speed" value="4" />
+
                 <label for="speed8x">8x</label>
                 <input type="radio" id="speed8x" name="speed" value="8" />
               </div>
+            </div>
+
+            <!-- ✅ NEW: Chords toggle (global) -->
+            <div class="transport-group chord-toggle">
+              <label for="chordsToggle" class="muted" style="display:flex;gap:8px;align-items:center;">
+                <input type="checkbox" id="chordsToggle" />
+                Chords (Triads)
+              </label>
             </div>
           </div>
         </section>
@@ -177,10 +181,10 @@
         <div class="timeline-spacer"></div>
         <div id="globalTimeline"></div>
       </div>
-      <!-- =============================================== -->
 
       <div id="modulesContainer"></div>
-      <button id="addModule">
+
+      <button id="addModule" type="button">
         <span>Add Track</span>
         <img src="images/add.png" alt="Add icon" class="add-icon" />
       </button>

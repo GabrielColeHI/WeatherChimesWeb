@@ -48,6 +48,10 @@ var retrievedData;
 // Array to hold x-axis data for each plot
 let plotXData = {};
 
+// Chords
+let chordsOn = false; // global toggle (default off)
+
+
 // Function to initialize a sound module
 async function addSoundModule() {
   console.log('Adding a new sound module...');
@@ -319,6 +323,40 @@ document.getElementById('play').onclick = function () {
   playNotes();
 };
 
+//chords
+function stepKey(step) {
+  return Array.isArray(step) ? step.join(",") : String(step);
+}
+
+function buildDiatonicTriad(noteMidi, scale) {
+  if (!scale || scale.length === 0) return [noteMidi];
+
+  // Find the exact degree in the scale (melody comes from scale)
+  let idx = scale.indexOf(noteMidi);
+
+  // Fallback: if something weird happens, use closest
+  if (idx === -1) {
+    let best = Infinity;
+    for (let i = 0; i < scale.length; i++) {
+      const d = Math.abs(scale[i] - noteMidi);
+      if (d < best) { best = d; idx = i; }
+    }
+  }
+
+  const root  = scale[idx];
+  const third = scale[idx + 2] ?? (root + 4);  // fallback
+  const fifth = scale[idx + 4] ?? (root + 7);  // fallback
+
+  return [root, third, fifth];
+}
+
+function clampTriad(triad, minMidi = 48, maxMidi = 72) {
+  return triad.map(n => {
+    while (n < minMidi) n += 12;
+    while (n > maxMidi) n -= 12;
+    return n;
+  });
+}
 // Function to update the playback bar on the plot
 function updatePlaybackBar(moduleIndex, position) {
   const module = soundModules[moduleIndex]; // Get the module from the array
@@ -438,8 +476,11 @@ async function playNotes() {
       const midiPitches = midiPitchesArray[moduleId];
       if (!midiPitches || midiPitches.length === 0) return;
 
-      const currentIndex = i % midiPitches.length;
-      const currentNote = midiPitches[currentIndex];
+            const currentIndex = i % midiPitches.length;
+
+      const step = midiPitches[currentIndex];
+      const notes = Array.isArray(step) ? step : [step];
+      const key = stepKey(step);
 
       let sustainDuration = timeBetweenNotes / 1000;
 
@@ -447,7 +488,9 @@ async function playNotes() {
         let sustainFactor = 1;
         let lookaheadIndex = (currentIndex + 1) % midiPitches.length;
 
-        while (midiPitches[lookaheadIndex] === currentNote && lookaheadIndex !== currentIndex) {
+        const curKey = stepKey(midiPitches[currentIndex]);
+
+        while (stepKey(midiPitches[lookaheadIndex]) === curKey && lookaheadIndex !== currentIndex) {
           sustainFactor++;
           lookaheadIndex = (lookaheadIndex + 1) % midiPitches.length;
           if (lookaheadIndex === currentIndex) break;
@@ -456,11 +499,10 @@ async function playNotes() {
         sustainDuration *= sustainFactor;
       }
 
-      // Play only if it's a new note (not a duplicate)
-      if (currentNote !== lastPlayedNote[moduleId]) {
-        const freq = midiToFreq(currentNote);
-        synth.triggerAttackRelease(freq, sustainDuration, time);
-        lastPlayedNote[moduleId] = currentNote;
+      if (key !== lastPlayedNote[moduleId]) {
+        const freqs = notes.map(midiToFreq);
+        synth.triggerAttackRelease(freqs, sustainDuration, time);
+        lastPlayedNote[moduleId] = key;
       }
     });
 
@@ -621,7 +663,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle selection from the named dropdown
   retrieveByNameDropdown.addEventListener('change', handleDatasetChange);
+
+
+
+  const chordsToggle = document.getElementById("chordsToggle");
+  console.log("chordsToggle element:", chordsToggle);
+
+  if (chordsToggle) {
+    chordsToggle.checked = chordsOn;
+
+    chordsToggle.addEventListener("change", () => {
+      chordsOn = chordsToggle.checked; // <-- updates the GLOBAL chordsOn
+      console.log("CHORDS TOGGLED ->", chordsOn);
+
+      // rebuild pitches for every module
+      soundModules.forEach((_, idx) => updateSoundModule(idx));
+    });
+  }
 });
+
 
 // Listener for "Dataset Name" dropdown
 async function handleDatasetChange(event) {
@@ -999,7 +1059,13 @@ function updateSoundModule(moduleIdx) {
   const scale = createScaleArray(tonic, scaleName, tessitura);
 
   // Update the respective MIDI pitches array
-  midiPitchesArray[moduleIdx] = dataToMidiPitches(normalizedData, scale);
+  //midiPitchesArray[moduleIdx] = dataToMidiPitches(normalizedData, scale);
+
+  const melody = dataToMidiPitches(normalizedData, scale);
+
+  midiPitchesArray[moduleIdx] = chordsOn
+    ? melody.map(n => clampTriad(buildDiatonicTriad(n, scale), 48, 72))
+    : melody;
 }
 
 // <--------- GLOBAL X-AXIS ---------->
